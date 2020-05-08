@@ -1,0 +1,73 @@
+GlowScript 2.9 VPython
+#MAT128C Homework 2 Problem 1.1
+graph(fast=False)
+fun_graph = gcurve(color=color.red, markers=True)
+eta=1.1;
+c=.5;
+def fun(t,y):
+    # This is the right-hand side of the first-order ordinary differential 
+    # equation dx/dt = fun.
+
+    fun = -c*sin(y)+eta
+    
+    return fun
+    
+# Set initial conditions.
+t = 0
+y = 0.04
+
+# Set initial step size.
+dt = 1e-1
+
+# Set minimal step size.
+dt_min = 10e-5
+
+# Set relative change tolerances.
+dy_max = 0.01  # Enables faster speed.
+dy_min = 0.008 # Controls accuracy.
+y_tol = 1e-3
+
+while (t < 100):
+    rate(100)
+    
+    # Calculate partial steps.
+    k1 = fun(t,      y)
+    k2 = fun(t+dt/2, y+dt*k1/2)
+    
+    # Combine partial steps.
+    step_y = y + dt/6*(k1+2*k2)
+
+    # Calculate partial steps.
+    k2 = fun(t+dt/4, y+dt*k1/4)
+    
+    # Combine partial steps.
+    half_step_y = y + dt/12*(k1+2*k2)
+
+    # Calculate partial steps.
+    k2 = fun(t+dt,   y+dt*k1)
+    
+    # Combine partial steps.
+    dble_step_y = y + dt/3*(k1+2*k2)
+
+    if (abs(step_y) < y_tol): # Use a fixed step size for small values of y.
+        if (dt != dt_min):
+            print("New step size",dt_min)
+            dt = dt_min
+        new_y = step_y
+    else:
+        if (abs(step_y) > y_tol and abs(step_y-half_step_y)/abs(step_y) > dy_max):
+            dt = dt/2 # Error is too large; decrease step size.
+            print("New step size",dt)
+            new_y = half_step_y
+        else if (abs(step_y) > y_tol and abs(step_y-dble_step_y)/abs(step_y) < dy_min):
+            dt = dt*2 # Larger error is acceptable; increase step size.
+            print("New step size",dt)
+            new_y = dble_step_y
+        else:
+            new_y = step_y # This step size is just right.
+
+    y = new_y
+    t = t + dt
+    
+    
+    fun_graph.plot(pos=(t,y))
